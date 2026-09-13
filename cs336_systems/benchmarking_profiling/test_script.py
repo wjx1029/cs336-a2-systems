@@ -1,23 +1,31 @@
-import pandas as pd
+import subprocess
 
-# 构造模型参数表
-data = {
-    "Size": ["small", "medium", "large", "xl", "10B"],
-    "d_model": [768, 1024, 1280, 2560, 4608],
-    "d_ff": [3072, 4096, 5120, 10240, 12288],
-    "num_layers": [12, 24, 36, 32, 50],
-    "num_heads": [12, 16, 20, 32, 36]
-}
-df = pd.DataFrame(data)
+model_sizes = [
+    ("small", 768, 3072, 12, 12),
+    # ("medium", 1024, 4096, 24, 16),
+    # ("large", 1280, 5120, 36, 20),
+    # ("xl", 2560, 10240, 32, 32),
+    # ("10B", 4608, 12288, 50, 36),
+]
 
-# 打印DataFrame看效果
-print(df)
-
-# 生成LaTeX代码，不输出pandas自带索引，带竖线横线，匹配原图样式
-latex_str = df.to_latex(
-    index=False,
-    column_format="|c|c|c|c|c|",  # 全部居中 + 竖线，和图片表格一致
-    escape=False
-)
-print("\n==== LaTeX Code ====")
-print(latex_str)
+for name, d_model, d_ff, num_layers, num_heads in model_sizes:
+    print(f"\n===== Running model: {name} =====")
+    for mode in ['forward-only', 'forward-backward', 'forward-optimizer']:
+        cmd = [
+            "uv", "run", "python", "benchmark.py",
+            "--d_model", str(d_model),
+            "--d_ff", str(d_ff),
+            "--num_layers", str(num_layers),
+            "--num_heads", str(num_heads),
+            "--vocab_size", "10000",
+            "--context_length", "512",
+            "--batch_size", "4",
+            "--warmup", "5",
+            "--m_steps", "10",
+            "--mode", mode
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        print("stdout:\n", res.stdout)
+        if res.stderr:
+            print("stderr:\n", res.stderr)
+        # print(f"return code: {res.returncode}")
