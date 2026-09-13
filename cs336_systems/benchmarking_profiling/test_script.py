@@ -1,4 +1,6 @@
 import subprocess
+import os
+
 
 model_sizes = [
     ("small", 768, 3072, 12, 12),
@@ -22,10 +24,12 @@ for name, d_model, d_ff, num_layers, num_heads in model_sizes:
             "--batch_size", "4",
             "--warmup", "5",
             "--m_steps", "10",
-            "--mode", mode
+            "--mode", mode,
+            os.path.abspath(os.path.join(os.path.dirname(__file__), 'benchmark.py'))
         ]
         res = subprocess.run(cmd, capture_output=True, text=True)
         print("stdout:\n", res.stdout)
         if res.stderr:
             print("stderr:\n", res.stderr)
+            break
         # print(f"return code: {res.returncode}")

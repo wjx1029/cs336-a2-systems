@@ -29,6 +29,9 @@ def parse_args():
 
 def benchmark():
 
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. This benchmark requires an NVIDIA GPU with CUDA.")
+
     args = parse_args()
 
     device = torch.device('cuda:0')
