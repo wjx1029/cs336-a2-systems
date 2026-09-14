@@ -14,7 +14,7 @@ for name, d_model, d_ff, num_layers, num_heads in model_sizes:
     print(f"\n===== Running model: {name} =====")
     for mode in ['forward-only', 'forward-backward', 'forward-optimizer']:
         cmd = [
-            "uv", "run", "python", "benchmark.py",
+            "uv", "run", os.path.abspath(os.path.join(os.path.dirname(__file__), 'benchmark.py')),
             "--d_model", str(d_model),
             "--d_ff", str(d_ff),
             "--num_layers", str(num_layers),
@@ -25,11 +25,10 @@ for name, d_model, d_ff, num_layers, num_heads in model_sizes:
             "--warmup", "5",
             "--m_steps", "10",
             "--mode", mode,
-            os.path.abspath(os.path.join(os.path.dirname(__file__), 'benchmark.py'))
         ]
         res = subprocess.run(cmd, capture_output=True, text=True)
         print("stdout:\n", res.stdout)
         if res.stderr:
             print("stderr:\n", res.stderr)
-            break
-        # print(f"return code: {res.returncode}")
+        if res.returncode != 0:
+            raise RuntimeError(f"({name},{mode}) failed.")
