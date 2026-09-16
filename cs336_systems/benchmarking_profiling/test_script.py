@@ -4,7 +4,7 @@ import os
 
 model_sizes = [
     ("small", 768, 3072, 12, 12),
-    # ("medium", 1024, 4096, 24, 16),
+    # ("medium", 1024, 4096, 24, 16),显存不够
     # ("large", 1280, 5120, 36, 20),
     # ("xl", 2560, 10240, 32, 32),
     # ("10B", 4608, 12288, 50, 36),
@@ -28,7 +28,7 @@ for name, d_model, d_ff, num_layers, num_heads in model_sizes:
         ]
         res = subprocess.run(cmd, capture_output=True, text=True)
         print("stdout:\n", res.stdout)
-        if res.stderr:
-            print("stderr:\n", res.stderr)
+        # if res.stderr:
+        #     print("stderr:\n", res.stderr)
         if res.returncode != 0:
             raise RuntimeError(f"({name},{mode}) failed.")

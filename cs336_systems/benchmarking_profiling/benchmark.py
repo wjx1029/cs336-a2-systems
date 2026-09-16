@@ -109,7 +109,7 @@ def benchmark():
             logs.append(end - start) 
 
     logs = np.array(logs)
-    print(f'{args.mode}: mean={np.mean(logs):.2f}s, std={np.std(logs):.2f}s')
+    print(f'{args.mode}: mean={np.mean(logs):.2f}, std={np.std(logs):.5f}')
 
 if __name__ == "__main__":
 
