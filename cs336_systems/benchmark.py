@@ -11,10 +11,10 @@ def parse_args():
     parser = argparse.ArgumentParser(description='高级示例')
 
     # 模型超参数
-    parser.add_argument('--d_model', type=int, required=True)
-    parser.add_argument('--d_ff', type=int, required=True)
-    parser.add_argument('--num_layers', type=int, required=True)
-    parser.add_argument('--num_heads', type=int, required=True)
+    parser.add_argument('--d_model', type=int, default=768)
+    parser.add_argument('--d_ff', type=int, default=3072)
+    parser.add_argument('--num_layers', type=int, default=12)
+    parser.add_argument('--num_heads', type=int, default=12)
     parser.add_argument('--vocab_size', type=int, default=10000)
     parser.add_argument('--context_length', type=int, default=512)
     parser.add_argument('--batch_size', type=int, default=4)
@@ -22,7 +22,7 @@ def parse_args():
     # 测试参数
     parser.add_argument('--warmup', type=int, default=5)
     parser.add_argument('--m_steps', type=int, default=10)
-    parser.add_argument('--mode', choices=['forward-only', 'forward-backward', 'forward-optimizer'], default='forward-only')
+    parser.add_argument('--mode', choices=['forward-only', 'forward-backward', 'forward-optimizer'], default='forward-optimizer')
 
     return parser.parse_args()
 
