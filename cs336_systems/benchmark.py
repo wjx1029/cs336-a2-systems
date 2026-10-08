@@ -2,9 +2,39 @@ import torch
 import timeit
 import argparse
 import numpy as np
+import math
 
 from cs336_basics.model import BasicsTransformerLM
 from cs336_basics.optimizer import AdamW
+import cs336_basics.model
+
+import torch.cuda.nvtx as nvtx
+
+# 1. 使用装饰器给整个函数打一个最外层的标签
+@nvtx.range("scaled dot product attention")
+def annotated_scaled_dot_product_attention(Q, K, V, mask=None):
+   
+    # 2. 内部用 with 语句给不同阶段打上子标签
+    with nvtx.range("computing attention scores"):
+         d_k = K.shape[-1]
+        # 计算 Q 和 K 的注意力分数 (例如: scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k))
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)
+    
+    with nvtx.range("applying mask"):
+        if mask is not None:
+            scores = torch.where(mask, scores, float("-inf"))
+        
+    with nvtx.range("computing softmax"):
+        # 计算 softmax (例如: attn = torch.softmax(scores, dim=-1))
+        attn = torch.softmax(scores, dim=-1)
+        
+    with nvtx.range("final matmul"):
+        # 计算输出投影 (例如: output = attn @ V)
+        output = attn @ V
+        
+    return output
+
+cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
 
 # 解析命令行参数
 def parse_args():
