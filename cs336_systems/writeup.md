@@ -1,5 +1,5 @@
 # 1.Profiling and Benchmarking
-## 1.1 Profiling
+## 1.1 Benchmarking
 - Problem (benchmarking_script):  Benchmarking Script
 
   - small model
@@ -15,3 +15,10 @@
       - forward-optimizer: mean=0.75 s, std=0.00080
 
 - (c) 当warmup=0时,标准差会变大;预热会让系统趋于稳定, 避免第一次加载数据干扰测试
+
+## 1.2 Profiling
+- (a) forward pass spend about 1 second, higher than standrad python library.
+- (b) **volta_sgemm_128x128_tn** and **volta_sgemm_128x64_tn** take the most cumulative GPU  time during forward pass.  They are invoked during a single forward pass in 375 and 900 times.
+- (c) vectorized_elementwise_kernel, elementwise_kernel, softmax_warp_forward, CatArrayBatchedCopy, reduce_kernel
+- (d)
+- (e) The FLOPs differ by ~300×, yet the runtimes are essentially the same, because softmax is memory-bound while matrix multiplication is compute-bound.
