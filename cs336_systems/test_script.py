@@ -10,9 +10,14 @@ model_sizes = [
     # ("10B", 4608, 12288, 50, 36),
 ]
 
+ALL = ['forward-only', 'forward-backward', 'forward-optimizer']
+FW = ['forward-only']
+FB = ['forward-backward']
+FULL = ['forward-optimizer']
+
 for name, d_model, d_ff, num_layers, num_heads in model_sizes:
     print(f"\n===== Running model: {name} =====")
-    for mode in ['forward-only', 'forward-backward', 'forward-optimizer']:
+    for mode in FB:
         cmd = [
             "uv", "run", os.path.abspath(os.path.join(os.path.dirname(__file__), 'benchmark.py')),
             "--d_model", str(d_model),
@@ -25,6 +30,7 @@ for name, d_model, d_ff, num_layers, num_heads in model_sizes:
             "--warmup", "5",
             "--m_steps", "10",
             "--mode", mode,
+            "--mixed_precision", "none"
         ]
         res = subprocess.run(cmd, capture_output=True, text=True)
         print("stdout:\n", res.stdout)

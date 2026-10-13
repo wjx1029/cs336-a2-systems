@@ -9,6 +9,7 @@ from cs336_basics.optimizer import AdamW
 import cs336_basics.model
 
 import torch.cuda.nvtx as nvtx
+from contextlib import nullcontext
 
 # 1. 使用装饰器给整个函数打一个最外层的标签
 @nvtx.range("scaled dot product attention")
@@ -53,6 +54,9 @@ def parse_args():
     parser.add_argument('--m_steps', type=int, default=10)
     parser.add_argument('--mode', choices=['forward-only', 'forward-backward', 'forward-optimizer'], default='forward-optimizer')
 
+    # 是否启用混合精度
+    parser.add_argument('--mixed_precision', type=str, default='none')
+
     return parser.parse_args()
 
 
@@ -74,6 +78,24 @@ def benchmark():
 
     # 随机生成batch数据
     inputs = torch.randint(0, args.vocab_size, (args.batch_size, args.context_length)).to(device)
+
+    # 1) 字符串 → torch.dtype
+    dtype_map = {
+        "float16":  torch.float16,
+        "bfloat16": torch.bfloat16,
+        "float32":  torch.float32,
+    }
+
+    # 2) 根据参数选择上下文管理器
+    if args.mixed_precision == "none":
+        autocast_ctx = nullcontext()          # 全精度，no-op
+    else:
+        amp_dtype = dtype_map[args.mixed_precision]
+        autocast_ctx = torch.autocast(
+            device_type="cuda",               # 或 "cpu"，视设备而定
+            dtype=amp_dtype,
+        )
+
 
     # forward-only
     if args.mode == 'forward-only':
@@ -111,7 +133,8 @@ def benchmark():
         for _ in range(args.m_steps):
             optimizer.zero_grad()
             start = timeit.default_timer()
-            loss = model(inputs).sum()
+            with autocast_ctx: 
+                loss = model(inputs).sum()
             loss.backward()
             torch.cuda.synchronize()
             end = timeit.default_timer()
