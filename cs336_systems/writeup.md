@@ -28,6 +28,6 @@
 2. - the model parameters within the autocast context?  FP32
    - the output of the first feed-forward layer (ToyModel.fc1)? FP16
    - the output of layer norm (ToyModel.ln)?  FP32
-   - the model’s predicted logits?  FP32
+   - the model’s predicted logits?  FP16
    - the loss?  FP32
    - the model’s gradients? FP32
