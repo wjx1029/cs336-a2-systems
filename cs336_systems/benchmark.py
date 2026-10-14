@@ -104,16 +104,23 @@ def benchmark():
             logits = model(inputs)
         torch.cuda.synchronize()
 
-        cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
+        # cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
         
         # measure
         logs = []
+        # Start recording history.
+        torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
         for _ in range(args.m_steps):
             start = timeit.default_timer()
             logits = model(inputs)
             torch.cuda.synchronize()
             end = timeit.default_timer()
             logs.append(end - start)
+
+        # Save a pickle file to be loaded by PyTorch's online tool.
+        torch.cuda.memory._dump_snapshot("memory_snapshot_forward.pickle")
+        # Stop recording history.
+        torch.cuda.memory._record_memory_history(enabled=None)
 
     # forward-backward
     if args.mode == 'forward-backward':
@@ -126,7 +133,7 @@ def benchmark():
             loss.backward()
         torch.cuda.synchronize()
 
-        cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
+        # cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
 
         # measure
         logs = []
@@ -152,10 +159,13 @@ def benchmark():
             optimizer.step()
         torch.cuda.synchronize()
 
-        cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
+        # cs336_basics.model.scaled_dot_product_attention = annotated_scaled_dot_product_attention
 
         # measure
         logs = []
+        # Start recording history.
+        torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
+        
         for _ in range(args.m_steps):
             optimizer.zero_grad()
             start = timeit.default_timer()
@@ -165,6 +175,11 @@ def benchmark():
             torch.cuda.synchronize()
             end = timeit.default_timer()
             logs.append(end - start) 
+
+        # Save a pickle file to be loaded by PyTorch's online tool.
+        torch.cuda.memory._dump_snapshot("memory_snapshot_train_step.pickle")
+        # Stop recording history.
+        torch.cuda.memory._record_memory_history(enabled=None)
 
     logs = np.array(logs)
     print(f'{args.mode}: mean={np.mean(logs):.2f} s, std={np.std(logs):.5f}')
