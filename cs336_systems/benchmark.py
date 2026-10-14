@@ -118,7 +118,7 @@ def benchmark():
             logs.append(end - start)
 
         # Save a pickle file to be loaded by PyTorch's online tool.
-        torch.cuda.memory._dump_snapshot("memory_snapshot_forward.pickle")
+        torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}.pickle")
         # Stop recording history.
         torch.cuda.memory._record_memory_history(enabled=None)
 
@@ -177,7 +177,7 @@ def benchmark():
             logs.append(end - start) 
 
         # Save a pickle file to be loaded by PyTorch's online tool.
-        torch.cuda.memory._dump_snapshot("memory_snapshot_train_step.pickle")
+        torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}.pickle")
         # Stop recording history.
         torch.cuda.memory._record_memory_history(enabled=None)
 
