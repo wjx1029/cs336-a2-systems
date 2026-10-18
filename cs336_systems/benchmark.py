@@ -57,6 +57,9 @@ def parse_args():
     # 是否启用混合精度
     parser.add_argument('--mixed_precision', type=str, default='none')
 
+    # 是否启用memory profile
+    parser.add_argument('--memory-profile', type=str, choices=['true', 'false'], default='false')
+
     return parser.parse_args()
 
 
@@ -109,7 +112,8 @@ def benchmark():
         # measure
         logs = []
         # Start recording history.
-        torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
+        if args.memory_profile == 'true':
+            torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
         for _ in range(args.m_steps):
             start = timeit.default_timer()
             logits = model(inputs)
@@ -117,10 +121,11 @@ def benchmark():
             end = timeit.default_timer()
             logs.append(end - start)
 
-        # Save a pickle file to be loaded by PyTorch's online tool.
-        torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}.pickle")
-        # Stop recording history.
-        torch.cuda.memory._record_memory_history(enabled=None)
+        if args.memory_profile == 'true':
+            # Save a pickle file to be loaded by PyTorch's online tool.
+            torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}_{args.mixed_precision}.pickle")
+            # Stop recording history.
+            torch.cuda.memory._record_memory_history(enabled=None)
 
     # forward-backward
     if args.mode == 'forward-backward':
@@ -164,7 +169,8 @@ def benchmark():
         # measure
         logs = []
         # Start recording history.
-        torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
+        if args.memory_profile == 'true':
+            torch.cuda.memory._record_memory_history(max_entries=1000000, context='all')
         
         for _ in range(args.m_steps):
             optimizer.zero_grad()
@@ -176,10 +182,11 @@ def benchmark():
             end = timeit.default_timer()
             logs.append(end - start) 
 
+        if args.memory_profile == 'true':
         # Save a pickle file to be loaded by PyTorch's online tool.
-        torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}.pickle")
-        # Stop recording history.
-        torch.cuda.memory._record_memory_history(enabled=None)
+            torch.cuda.memory._dump_snapshot(f"memory_snapshot_{args.mode}_{args.context_length}_{args.mixed_precision}.pickle")
+            # Stop recording history.
+            torch.cuda.memory._record_memory_history(enabled=None)
 
     logs = np.array(logs)
     print(f'{args.mode}: mean={np.mean(logs):.2f} s, std={np.std(logs):.5f}')
