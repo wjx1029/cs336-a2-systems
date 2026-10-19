@@ -44,3 +44,16 @@ answer(d)
 look closely at the “Active Memory Timeline” from `memory_snapshot_forward-only_512_none.pikle`
 
 answer(e)
+
+## 6
+
+```
+nsys profile \
+    --trace=cuda,nvtx,osrt,cudnn,cublas \
+    --pytorch=autograd-shapes-nvtx \
+    --cuda-memory-usage=true \
+    -o transformer_profile \
+    uv run benchmark.py --m_steps=1 --mode=forward-backward
+```
+
+answer(f)
